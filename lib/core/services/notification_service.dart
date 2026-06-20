@@ -55,7 +55,7 @@ class NotificationService {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwinInit = DarwinInitializationSettings();
     await _localNotif.initialize(
-      const InitializationSettings(android: androidInit, iOS: darwinInit),
+      settings: const InitializationSettings(android: androidInit, iOS: darwinInit),
       onDidReceiveNotificationResponse: (details) {
         debugPrint('[FCM] Notification tapped: ${details.payload}');
       },
@@ -122,10 +122,10 @@ class NotificationService {
     if (notif == null) return;
 
     _localNotif.show(
-      notif.hashCode,
-      notif.title,
-      notif.body,
-      NotificationDetails(
+      id: notif.hashCode,
+      title: notif.title,
+      body: notif.body,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannel.id,
           _androidChannel.name,
