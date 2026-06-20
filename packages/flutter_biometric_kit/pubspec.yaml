@@ -1,0 +1,11 @@
+name: flutter_biometric_kit
+description: Local biometric facade used by Pasar Malam.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
