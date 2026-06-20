@@ -1,6 +1,10 @@
 class ApiConstants {
-  // Ganti dengan URL backend kamu
-  static const String baseUrl = 'http://192.168.0.5:8085/v1';
+  // Override saat run:
+  // flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8085/v1
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:8085/v1',
+  );
 
   // Auth endpoints
   static const String verifyToken = '/auth/verify-token';
