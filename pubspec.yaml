@@ -49,7 +49,7 @@ dependencies:
 
   # Biometric app lock — library lokal
   flutter_biometric_kit:
-    path: ../flutter_biometric_kit
+    path: packages/flutter_biometric_kit
 
 dev_dependencies:
   flutter_test:
