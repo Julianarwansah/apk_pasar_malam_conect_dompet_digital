@@ -10,7 +10,8 @@ enum AuthStatus { initial, loading, authenticated, unauthenticated, emailNotVeri
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _googleSignInInitialized = false;
 
   // ─── State ──────────────────────────────────────────────
   AuthStatus _status = AuthStatus.initial;
@@ -125,19 +126,14 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('│ [FIREBASE REQUEST] Google Sign-In');
     debugPrint('└─────────────────────────────────────────────');
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        debugPrint('[FIREBASE]  Google Sign-In dibatalkan user');
-        _setError('Login Google dibatalkan');
-        return false;
-      }
+      await _initializeGoogleSignIn();
+      final googleUser = await _googleSignIn.authenticate();
       debugPrint('[FIREBASE] Google account dipilih: ${googleUser.email}');
 
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = googleUser.authentication;
       debugPrint('[FIREBASE] Google auth token diperoleh');
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -160,6 +156,12 @@ class AuthProvider extends ChangeNotifier {
       _setError('Gagal login dengan Google: $e');
       return false;
     }
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    if (_googleSignInInitialized) return;
+    await _googleSignIn.initialize();
+    _googleSignInInitialized = true;
   }
 
   // ─── Kirim Firebase Token ke Backend ────────────────────
