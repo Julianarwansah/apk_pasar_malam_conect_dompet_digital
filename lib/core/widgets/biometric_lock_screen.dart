@@ -3,11 +3,10 @@ import 'package:flutter_biometric_kit/flutter_biometric_kit.dart';
 import 'package:provider/provider.dart';
 
 import '../services/biometric_lock_provider.dart';
+import 'swiss.dart';
 
 /// Membungkus seluruh widget tree dan menampilkan layar kunci
 /// jika [BiometricLockProvider.isLocked] bernilai true.
-///
-/// Dipasang di [MaterialApp.builder] agar aktif di semua halaman.
 class BiometricLockScreen extends StatefulWidget {
   final Widget child;
 
@@ -21,14 +20,12 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
     with WidgetsBindingObserver {
   DateTime? _backgroundedAt;
 
-  // Kunci setelah app di background lebih dari 30 detik
   static const _lockTimeout = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Trigger unlock pertama kali app dibuka (setelah frame pertama render)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BiometricLockProvider>();
       if (provider.isLocked) provider.unlock();
@@ -43,7 +40,6 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Guard: element mungkin belum active saat transisi lifecycle
     if (!mounted) return;
 
     switch (state) {
@@ -52,13 +48,10 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
         if (!provider.isLocked) {
           _backgroundedAt = DateTime.now();
         }
-
       case AppLifecycleState.resumed:
         final bg = _backgroundedAt;
         if (bg != null && DateTime.now().difference(bg) >= _lockTimeout) {
           _backgroundedAt = null;
-          // Defer ke frame berikutnya agar element sudah active
-          // sebelum notifyListeners() dipanggil oleh lock()/unlock()
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             final provider = context.read<BiometricLockProvider>();
@@ -66,7 +59,6 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
             provider.unlock();
           });
         }
-
       default:
         break;
     }
@@ -75,124 +67,124 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BiometricLockProvider>();
-
     if (!provider.isLocked) return widget.child;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Ikon kunci dengan animasi loading saat autentikasi
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+              SwissLabel('Pasar Malam · Secure'),
+              const SizedBox(height: 32),
+              Container(
+                width: 32,
+                height: 1,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const Spacer(),
+              Center(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
                   child: provider.isAuthenticating
-                      ? const SizedBox(
-                          key: ValueKey('loading'),
-                          width: 72,
-                          height: 72,
+                      ? SizedBox(
+                          key: const ValueKey('loading'),
+                          width: 48,
+                          height: 48,
                           child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            color: Colors.teal,
+                            strokeWidth: 1.5,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         )
                       : Container(
                           key: const ValueKey('icon'),
-                          width: 72,
-                          height: 72,
+                          width: 48,
+                          height: 48,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.teal.shade50,
-                            border: Border.all(color: Colors.teal, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.lock_outline,
-                            size: 36,
-                            color: Colors.teal,
-                          ),
-                        ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Aplikasi Terkunci',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Verifikasi identitas Anda untuk melanjutkan',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                  textAlign: TextAlign.center,
-                ),
-
-                // Pesan error jika autentikasi gagal
-                if (provider.errorMessage != null) ...[
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      border: Border.all(color: Colors.red.shade200),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning_amber_rounded,
-                            color: Colors.red.shade400, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            provider.errorMessage!,
-                            style: TextStyle(
-                              color: Colors.red.shade700,
-                              fontSize: 13,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              width: 1,
                             ),
                           ),
+                          child: Icon(
+                            Icons.lock_outline,
+                            size: 22,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
-                      ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Aplikasi Terkunci',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      height: 1.0,
+                      letterSpacing: -0.8,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Verifikasi identitas untuk melanjutkan.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
+                    ),
+              ),
+              if (provider.errorMessage != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.error,
+                      width: 1,
                     ),
                   ),
-                ],
-
-                const SizedBox(height: 28),
-
-                // Tombol buka kunci
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed:
-                        provider.isAuthenticating ? null : provider.unlock,
-                    icon: const Icon(Icons.fingerprint),
-                    label: const Text('Buka Kunci'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_outlined,
+                        color: Theme.of(context).colorScheme.error,
+                        size: 18,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          provider.errorMessage!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-
-                // Tombol Buka Pengaturan — muncul hanya jika belum ada biometrik terdaftar
-                if (provider.errorCode == BiometricErrorCode.notEnrolled) ...[
-                  const SizedBox(height: 10),
-                  TextButton.icon(
-                    onPressed: () {
-                      // Android akan membuka Settings biometrik
-                      // Implementasi lanjutan: gunakan package open_settings
-                    },
-                    icon: const Icon(Icons.settings_outlined, size: 16),
-                    label: const Text('Daftarkan Biometrik di Pengaturan'),
-                    style: TextButton.styleFrom(foregroundColor: Colors.teal),
-                  ),
-                ],
               ],
-            ),
+              const Spacer(),
+              SwissPrimaryButton(
+                label: 'Buka Kunci',
+                icon: Icons.fingerprint,
+                onPressed:
+                    provider.isAuthenticating ? null : provider.unlock,
+                loading: provider.isAuthenticating,
+              ),
+              if (provider.errorCode == BiometricErrorCode.notEnrolled) ...[
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('DAFTARKAN BIOMETRIK DI PENGATURAN'),
+                ),
+              ],
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),

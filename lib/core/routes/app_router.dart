@@ -80,8 +80,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _checkAuth() async {
-    // Animasi splash singkat
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
 
     final token = await SecureStorageService.getToken();
@@ -91,7 +90,65 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 32),
+                Text(
+                  'Pasar Malam · 00',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  width: 32,
+                  height: 1,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const Spacer(),
+                Center(
+                  child: SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: Text(
+                    'LOADING',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Pasar Malam',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -1.5,
+                        height: 1.0,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Etalase · Dompet · Pesanan.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
       );
 }
