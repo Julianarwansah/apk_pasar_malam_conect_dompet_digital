@@ -2,6 +2,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:pasar_malam/core/routes/app_router.dart';
+import 'package:pasar_malam/core/widgets/swiss.dart';
 import 'package:pasar_malam/features/auth/presentation/providers/auth_provider.dart';
 import 'package:pasar_malam/features/auth/presentation/widgets/auth_header.dart';
 import 'package:pasar_malam/features/auth/presentation/widgets/custom_button.dart';
@@ -31,21 +32,17 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  /// Handler untuk login email/password
   Future<void> _loginEmail() async {
     if (!_formKey.currentState!.validate()) return;
-
     final auth = context.read<AuthProvider>();
     final ok = await auth.loginWithEmail(
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
     );
-
     if (!mounted) return;
     _handleLoginResult(ok, auth);
   }
 
-  /// Handler untuk login Google
   Future<void> _loginGoogle() async {
     final auth = context.read<AuthProvider>();
     final ok = await auth.loginWithGoogle();
@@ -53,7 +50,6 @@ class _LoginPageState extends State<LoginPage> {
     _handleLoginResult(ok, auth);
   }
 
-  /// Routing berdasarkan hasil login
   void _handleLoginResult(bool ok, AuthProvider auth) {
     if (ok) {
       Navigator.pushReplacementNamed(context, AppRouter.dashboard);
@@ -61,10 +57,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacementNamed(context, AppRouter.verifyEmail);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.errorMessage ?? 'Login gagal'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(auth.errorMessage ?? 'Login gagal')),
       );
     }
   }
@@ -84,16 +77,16 @@ class _LoginPageState extends State<LoginPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: const Text('BATAL'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () async {
               await FirebaseAuth.instance.sendPasswordResetEmail(
                 email: ctrl.text.trim(),
               );
               if (context.mounted) Navigator.pop(context);
             },
-            child: const Text('Kirim'),
+            child: const Text('KIRIM'),
           ),
         ],
       ),
@@ -106,28 +99,29 @@ class _LoginPageState extends State<LoginPage> {
 
     return LoadingOverlay(
       isLoading: isLoading,
-      message: 'Masuk ke akun...',
+      message: 'Masuk ke akun',
       child: Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 32),
                   const AuthHeader(
-                    icon: Icons.lock_open_outlined,
-                    title: 'Selamat Datang',
-                    subtitle: 'Masuk ke akun Anda untuk melanjutkan',
+                    kicker: 'Pasar Malam · 01',
+                    title: 'Masuk\nke Akun',
+                    subtitle:
+                        'Lanjutkan ke etalase, keranjang, dan pesanan Anda.',
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40),
                   CustomTextField(
                     label: 'Email',
                     hint: 'contoh@email.com',
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(Icons.email_outlined),
                     validator: (v) {
                       if (v?.isEmpty ?? true) return 'Email wajib diisi';
                       if (!EmailValidator.validate(v!)) {
@@ -136,16 +130,18 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   CustomTextField(
                     label: 'Password',
                     hint: 'Masukkan password',
                     controller: _passCtrl,
                     obscureText: !_showPass,
-                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showPass ? Icons.visibility_off : Icons.visibility,
+                        _showPass
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
                       ),
                       onPressed: () =>
                           setState(() => _showPass = !_showPass),
@@ -158,42 +154,48 @@ class _LoginPageState extends State<LoginPage> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () => _showForgotPasswordDialog(context),
-                      child: const Text('Lupa Password?'),
+                      child: const Text('LUPA PASSWORD?'),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 24),
                   CustomButton(
                     label: 'Masuk',
                     onPressed: _loginEmail,
                     isLoading: isLoading,
                   ),
-                  const SizedBox(height: 20),
-                  const DividerWithText(text: 'atau masuk dengan'),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 32),
+                  const DividerWithText(text: 'atau'),
+                  const SizedBox(height: 32),
                   GoogleSignInButton(
                     onPressed: _loginGoogle,
                     isLoading: isLoading,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Belum punya akun? '),
+                      SwissLabel('Belum punya akun?'),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pushReplacementNamed(
                           context,
                           AppRouter.register,
                         ),
-                        child: const Text(
-                          'Daftar',
+                        child: Text(
+                          'DAFTAR',
                           style: TextStyle(
-                            color: Color(0xFF1565C0),
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2.0,
+                            decoration: TextDecoration.underline,
+                            decorationThickness: 1,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

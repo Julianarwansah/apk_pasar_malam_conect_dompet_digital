@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -160,7 +161,9 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _initializeGoogleSignIn() async {
     if (_googleSignInInitialized) return;
-    await _googleSignIn.initialize();
+    await _googleSignIn.initialize(
+      clientId: '86299609726-ogu6c7gpp2j7o975jip9jr54vknr3uqo.apps.googleusercontent.com',
+    );
     _googleSignInInitialized = true;
   }
 
@@ -194,7 +197,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('[AUTH] _verifyTokenToBackend gagal: $e');
-      _setError('Gagal verifikasi ke server: $e');
+      _setError(_mapBackendError(e));
       return false;
     }
   }
@@ -322,4 +325,31 @@ class AuthProvider extends ChangeNotifier {
     'network-request-failed' => 'Tidak ada koneksi internet.',
     _ => 'Terjadi kesalahan. Coba lagi.',
   };
+
+  String _mapBackendError(Object error) {
+    if (error is DioException) {
+      final statusCode = error.response?.statusCode;
+      if (statusCode == 404) {
+        return 'Endpoint login backend tidak ditemukan. Pastikan API backend yang berjalan adalah Dompet Digital di port 8080.';
+      }
+      if (statusCode == 401 || statusCode == 403) {
+        return 'Token Firebase ditolak server. Pastikan backend memakai Firebase service account project yang sama.';
+      }
+      if (statusCode != null) {
+        return 'Server menolak login dengan status $statusCode.';
+      }
+
+      return switch (error.type) {
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.receiveTimeout ||
+        DioExceptionType.sendTimeout =>
+          'Server backend tidak merespons. Pastikan backend Dompet Digital sedang berjalan.',
+        DioExceptionType.connectionError =>
+          'Tidak bisa terhubung ke backend. Periksa alamat API dan koneksi.',
+        _ => 'Gagal verifikasi login ke server.',
+      };
+    }
+
+    return 'Gagal verifikasi login ke server.';
+  }
 }

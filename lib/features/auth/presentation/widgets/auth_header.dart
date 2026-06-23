@@ -1,47 +1,60 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/swiss.dart';
+
+/// Header halaman auth dengan gaya Swiss — label kecil + judul besar
+/// + underline tipis sebagai hairline divider visual.
 class AuthHeader extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String kicker;
   final String title;
-  final String subtitle;
-  final Color? iconColor;
+  final String? subtitle;
 
   const AuthHeader({
     super.key,
-    required this.icon,
+    this.icon,
+    required this.kicker,
     required this.title,
-    required this.subtitle,
-    this.iconColor,
+    this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color:
-                (iconColor ?? const Color(0xFF1565C0)).withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            size: 48,
-            color: iconColor ?? const Color(0xFF1565C0),
-          ),
+        Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16),
+              const SizedBox(width: 8),
+            ],
+            SwissLabel(kicker),
+          ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+        Container(width: 32, height: 1, color: Theme.of(context).colorScheme.onSurface),
+        const SizedBox(height: 16),
         Text(
           title,
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.0,
+                letterSpacing: -0.8,
+              ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            subtitle!,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(
+                        alpha: 0.6,
+                      ),
+                      height: 1.45,
+                    ),
+          ),
+        ],
       ],
     );
   }

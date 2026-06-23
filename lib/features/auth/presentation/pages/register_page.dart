@@ -1,6 +1,7 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:pasar_malam/core/routes/app_router.dart';
+import 'package:pasar_malam/core/widgets/swiss.dart';
 import 'package:pasar_malam/features/auth/presentation/providers/auth_provider.dart';
 import 'package:pasar_malam/features/auth/presentation/widgets/auth_header.dart';
 import 'package:pasar_malam/features/auth/presentation/widgets/custom_button.dart';
@@ -50,7 +51,6 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.errorMessage ?? 'Pendaftaran gagal'),
-          backgroundColor: Colors.red,
         ),
       );
     }
@@ -62,37 +62,37 @@ class _RegisterPageState extends State<RegisterPage> {
 
     return LoadingOverlay(
       isLoading: isLoading,
-      message: 'Mendaftarkan akun...',
+      message: 'Mendaftarkan akun',
       child: Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 32),
                   const AuthHeader(
-                    icon: Icons.person_add_alt_1,
-                    title: 'Buat Akun Baru',
-                    subtitle: 'Lengkapi data diri Anda untuk mendaftar',
+                    kicker: 'Pasar Malam · 02',
+                    title: 'Daftar\nAkun Baru',
+                    subtitle:
+                        'Lengkapi data di bawah untuk membuat akun Anda.',
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40),
                   CustomTextField(
                     label: 'Nama Lengkap',
                     hint: 'Masukkan nama lengkap',
                     controller: _nameCtrl,
-                    prefixIcon: const Icon(Icons.person_outline),
                     validator: (v) =>
                         (v?.isEmpty ?? true) ? 'Nama wajib diisi' : null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   CustomTextField(
                     label: 'Email',
                     hint: 'contoh@email.com',
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(Icons.email_outlined),
                     validator: (v) {
                       if (v?.isEmpty ?? true) return 'Email wajib diisi';
                       if (!EmailValidator.validate(v!)) {
@@ -101,16 +101,18 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   CustomTextField(
                     label: 'Password',
                     hint: 'Minimal 8 karakter',
                     controller: _passCtrl,
                     obscureText: !_showPass,
-                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showPass ? Icons.visibility_off : Icons.visibility,
+                        _showPass
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
                       ),
                       onPressed: () =>
                           setState(() => _showPass = !_showPass),
@@ -119,42 +121,47 @@ class _RegisterPageState extends State<RegisterPage> {
                         ? 'Password minimal 8 karakter'
                         : null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   CustomTextField(
                     label: 'Konfirmasi Password',
                     hint: 'Ulangi password',
                     controller: _pass2Ctrl,
                     obscureText: !_showPass,
-                    prefixIcon: const Icon(Icons.lock_outline),
                     validator: (v) =>
                         v != _passCtrl.text ? 'Password tidak cocok' : null,
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 40),
                   CustomButton(
                     label: 'Daftar Sekarang',
                     onPressed: _register,
                     isLoading: isLoading,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Sudah punya akun? '),
+                      SwissLabel('Sudah punya akun?'),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pushReplacementNamed(
                           context,
                           AppRouter.login,
                         ),
-                        child: const Text(
-                          'Masuk',
+                        child: Text(
+                          'MASUK',
                           style: TextStyle(
-                            color: Color(0xFF1565C0),
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2.0,
+                            decoration: TextDecoration.underline,
+                            decorationThickness: 1,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

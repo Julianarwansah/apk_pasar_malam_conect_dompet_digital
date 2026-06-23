@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Overlay loading ala Swiss — full hitam 60% dengan spinner
+/// dan label kecil uppercase di bawahnya.
 class LoadingOverlay extends StatelessWidget {
   final Widget child;
   final bool isLoading;
@@ -18,24 +20,33 @@ class LoadingOverlay extends StatelessWidget {
       children: [
         child,
         if (isLoading)
-          Container(
-            color: Colors.black.withValues(alpha: 0.4),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+          Positioned.fill(
+            child: ColoredBox(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const CircularProgressIndicator(),
+                    SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: Colors.white,
+                      ),
+                    ),
                     if (message != null) ...[
                       const SizedBox(height: 16),
+                      Container(width: 32, height: 1, color: Colors.white),
+                      const SizedBox(height: 12),
                       Text(
-                        message!,
-                        style: const TextStyle(fontSize: 14),
+                        message!.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2.0,
+                        ),
                       ),
                     ],
                   ],

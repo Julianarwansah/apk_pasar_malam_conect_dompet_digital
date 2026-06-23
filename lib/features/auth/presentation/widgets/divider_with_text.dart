@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/swiss.dart';
+
+/// Divider ala Swiss — hairline dengan label kecil uppercase.
 class DividerWithText extends StatelessWidget {
   final String text;
 
@@ -8,16 +11,14 @@ class DividerWithText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Expanded(child: Divider()),
+        const Expanded(child: SwissHairline()),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SwissLabel(text),
         ),
-        const Expanded(child: Divider()),
+        const Expanded(child: SwissHairline()),
       ],
     );
   }
