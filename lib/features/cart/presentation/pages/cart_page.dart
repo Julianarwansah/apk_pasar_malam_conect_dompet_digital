@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pasar_malam/core/routes/app_router.dart';
+import 'package:pasar_malam/core/widgets/swiss.dart';
 import 'package:pasar_malam/features/cart/data/models/cart_model.dart';
 import 'package:pasar_malam/features/cart/presentation/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
@@ -43,12 +44,14 @@ class _CartPageState extends State<CartPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: const Text('BATAL'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus Semua'),
+            child: Text(
+              'HAPUS SEMUA',
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -62,7 +65,7 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Keranjang Belanja'),
+        title: const Text('KERANJANG'),
         actions: [
           Consumer<CartProvider>(
             builder: (context, cartProv, _) {
@@ -70,7 +73,7 @@ class _CartPageState extends State<CartPage> {
                   cartProv.cart != null && cartProv.cart!.items.isNotEmpty;
               if (!hasItems) return const SizedBox.shrink();
               return IconButton(
-                icon: const Icon(Icons.delete_outline),
+                icon: const Icon(Icons.delete_outline, size: 20),
                 tooltip: 'Hapus Semua',
                 onPressed: () => _confirmClearCart(context, cartProv),
               );
@@ -90,13 +93,17 @@ class _CartPageState extends State<CartPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                   const SizedBox(height: 12),
                   Text(cartProv.error ?? 'Terjadi kesalahan'),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Coba Lagi'),
+                  SwissOutlineButton(
+                    label: 'Coba Lagi',
+                    icon: Icons.refresh,
                     onPressed: () => cartProv.fetchCart(),
                   ),
                 ],
@@ -106,21 +113,33 @@ class _CartPageState extends State<CartPage> {
 
           final cart = cartProv.cart;
           if (cart == null || cart.items.isEmpty) {
-            return _EmptyCartView();
+            return const _EmptyCartView();
           }
 
           return Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SwissLabel('Pasar Malam · Keranjang · 02'),
+                    SwissNumber('${cart.items.length} ITEM'),
+                  ],
+                ),
+              ),
+              const SwissHairline(),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => cartProv.fetchCart(),
                   child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     itemCount: cart.items.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) => const SizedBox(height: 16),
                     itemBuilder: (ctx, i) => _CartItemCard(
                       item: cart.items[i],
                       formatPrice: _formatPrice,
+                      index: i + 1,
                       onRemove: () => cartProv.removeItem(cart.items[i].id),
                       onDecrease: () {
                         final qty = cart.items[i].quantity - 1;
@@ -138,6 +157,7 @@ class _CartPageState extends State<CartPage> {
                   ),
                 ),
               ),
+              const SwissHairline(),
               _CartBottomBar(
                 total: cart.total,
                 formatPrice: _formatPrice,
@@ -153,55 +173,70 @@ class _CartPageState extends State<CartPage> {
   }
 }
 
-// ── Empty Cart View ────────────────────────────────────────
+// ── Empty Cart View ──────────────────────────────────────────
 class _EmptyCartView extends StatelessWidget {
+  const _EmptyCartView();
+
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 80,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Keranjang masih kosong',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  width: 1,
                 ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Yuk tambahkan produk ke keranjang!',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.4),
-                ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.shopping_bag_outlined),
-            label: const Text('Mulai Belanja'),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
+              ),
+              child: Icon(
+                Icons.shopping_bag_outlined,
+                size: 28,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(width: 24, height: 1, color: Theme.of(context).colorScheme.onSurface),
+            const SizedBox(height: 24),
+            Text(
+              'KERANJANG\nKOSONG.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    height: 1.0,
+                    letterSpacing: -0.5,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Yuk, tambahkan produk ke keranjang.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+            ),
+            const SizedBox(height: 32),
+            SwissPrimaryButton(
+              label: 'Mulai Belanja',
+              icon: Icons.arrow_forward,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── Cart Item Card ─────────────────────────────────────────
+// ── Cart Item Card ───────────────────────────────────────────
 class _CartItemCard extends StatelessWidget {
   final CartItemModel item;
   final String Function(double) formatPrice;
+  final int index;
   final VoidCallback onRemove;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
@@ -209,6 +244,7 @@ class _CartItemCard extends StatelessWidget {
   const _CartItemCard({
     required this.item,
     required this.formatPrice,
+    required this.index,
     required this.onRemove,
     required this.onDecrease,
     required this.onIncrease,
@@ -216,131 +252,123 @@ class _CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = Theme.of(context).colorScheme.surface;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final primary = Theme.of(context).colorScheme.primary;
+    final muted = onSurface.withValues(alpha: 0.6);
 
     return Container(
       decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: onSurface, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gambar produk
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+            // Gambar
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                border: Border.all(color: onSurface, width: 1),
+              ),
               child: item.product.imageUrl.isNotEmpty
                   ? Image.network(
                       item.product.imageUrl,
-                      width: 80,
-                      height: 80,
                       fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, stack) => _placeholder(context),
+                      errorBuilder: (ctx, error, stack) => _placeholder(context),
                     )
                   : _placeholder(context),
             ),
             const SizedBox(width: 12),
-            // Info produk
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.product.category,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: onSurface.withValues(alpha: 0.5),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item.product.name,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: onSurface,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                      Text(
+                        index.toString().padLeft(2, '0'),
+                        style: TextStyle(
+                          fontFamily: 'Helvetica',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                          color: muted,
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          size: 20,
-                          color: onSurface.withValues(alpha: 0.4),
+                      const SizedBox(width: 8),
+                      Container(width: 1, height: 10, color: muted),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.product.category.toUpperCase(),
+                          style: Theme.of(context).textTheme.labelSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: onRemove,
+                      ),
+                      GestureDetector(
+                        onTap: onRemove,
+                        behavior: HitTestBehavior.opaque,
+                        child: Icon(
+                          Icons.close,
+                          size: 16,
+                          color: muted,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.product.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          height: 1.2,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
                   Text(
                     formatPrice(item.product.price),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: onSurface.withValues(alpha: 0.6),
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Quantity control
                       Row(
                         children: [
-                          _QtyButton(
-                            icon: Icons.remove,
-                            onTap: onDecrease,
-                            primary: primary,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          _QtyButton(icon: Icons.remove, onTap: onDecrease),
+                          Container(
+                            width: 40,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(color: onSurface, width: 1),
+                                bottom: BorderSide(color: onSurface, width: 1),
+                              ),
+                            ),
                             child: Text(
                               '${item.quantity}',
                               style: TextStyle(
+                                fontFamily: 'Helvetica',
                                 fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: onSurface,
+                                fontWeight: FontWeight.w700,
+                                fontFeatures: const [FontFeature.tabularFigures()],
                               ),
                             ),
                           ),
-                          _QtyButton(
-                            icon: Icons.add,
-                            onTap: onIncrease,
-                            primary: primary,
-                          ),
+                          _QtyButton(icon: Icons.add, onTap: onIncrease),
                         ],
                       ),
-                      // Subtotal
                       Text(
                         formatPrice(item.subtotal),
                         style: TextStyle(
+                          fontFamily: 'Helvetica',
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: primary,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ],
@@ -355,13 +383,11 @@ class _CartItemCard extends StatelessWidget {
   }
 
   Widget _placeholder(BuildContext context) => Container(
-        width: 80,
-        height: 80,
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Icon(
           Icons.image_outlined,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
           size: 28,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
         ),
       );
 }
@@ -369,32 +395,31 @@ class _CartItemCard extends StatelessWidget {
 class _QtyButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  final Color primary;
 
-  const _QtyButton({
-    required this.icon,
-    required this.onTap,
-    required this.primary,
-  });
+  const _QtyButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 28,
-        height: 28,
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onSurface,
+            width: 1,
+          ),
         ),
-        child: Icon(icon, size: 16, color: primary),
+        child: Icon(icon, size: 14),
       ),
     );
   }
 }
 
-// ── Cart Bottom Bar ────────────────────────────────────────
+// ── Bottom Bar ───────────────────────────────────────────────
 class _CartBottomBar extends StatelessWidget {
   final double total;
   final String Function(double) formatPrice;
@@ -408,68 +433,66 @@ class _CartBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = Theme.of(context).colorScheme.surface;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final primary = Theme.of(context).colorScheme.primary;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Column(
+    return SafeArea(
+      top: false,
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Total',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
+                  SwissLabel('Total'),
+                  const SizedBox(height: 4),
                   Text(
                     formatPrice(total),
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: primary,
+                      fontFamily: 'Helvetica',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SizedBox(
+                height: 52,
                 child: ElevatedButton(
+                  onPressed: onCheckout,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    backgroundColor: Theme.of(context).colorScheme.onSurface,
+                    foregroundColor: Theme.of(context).colorScheme.surface,
+                    elevation: 0,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
                     ),
                   ),
-                  onPressed: onCheckout,
-                  child: const Text(
-                    'Checkout',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.arrow_forward, size: 16),
+                      SizedBox(width: 8),
+                      Text(
+                        'CHECKOUT',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

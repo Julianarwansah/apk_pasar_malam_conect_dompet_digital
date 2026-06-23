@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pasar_malam/core/widgets/swiss.dart';
 import 'package:pasar_malam/features/order/data/models/order_model.dart';
 import 'package:pasar_malam/features/order/presentation/providers/order_provider.dart';
 import 'package:provider/provider.dart';
@@ -35,11 +36,11 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     if (createdAt.isEmpty) return '-';
     try {
       final dt = DateTime.parse(createdAt);
-      final months = [
+      const months = [
         'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
         'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
       ];
-      return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+      return '${dt.day.toString().padLeft(2, '0')} ${months[dt.month - 1]} ${dt.year}';
     } catch (_) {
       return createdAt;
     }
@@ -48,7 +49,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pesanan Saya')),
+      appBar: AppBar(title: const Text('PESANAN SAYA')),
       body: Consumer<OrderProvider>(
         builder: (context, orderProv, _) {
           if (orderProv.checkoutStatus == OrderStatus.loading) {
@@ -60,13 +61,17 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                   const SizedBox(height: 12),
                   Text(orderProv.error ?? 'Terjadi kesalahan'),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Coba Lagi'),
+                  SwissOutlineButton(
+                    label: 'Coba Lagi',
+                    icon: Icons.refresh,
                     onPressed: () => orderProv.fetchMyOrders(),
                   ),
                 ],
@@ -76,43 +81,88 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
 
           if (orderProv.orders.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.receipt_long_outlined,
-                    size: 72,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.3),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum ada pesanan',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.5),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          width: 1,
                         ),
-                  ),
-                ],
+                      ),
+                      child: Icon(
+                        Icons.receipt_long_outlined,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      width: 24,
+                      height: 1,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'BELUM ADA\nPESANAN.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            height: 1.0,
+                            letterSpacing: -0.5,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Pesanan Anda akan muncul di sini.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6),
+                          ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
           return RefreshIndicator(
             onRefresh: () => orderProv.fetchMyOrders(),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: orderProv.orders.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (ctx, i) => _OrderCard(
-                order: orderProv.orders[i],
-                formatPrice: _formatPrice,
-                formatDate: _formatDate,
-              ),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SwissLabel('Pasar Malam · Pesanan · 04'),
+                        SwissNumber('${orderProv.orders.length} ITEM'),
+                      ],
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SwissHairline()),
+                SliverPadding(
+                  padding: const EdgeInsets.all(20),
+                  sliver: SliverList.separated(
+                    itemCount: orderProv.orders.length,
+                    separatorBuilder: (ctx, i) => const SizedBox(height: 16),
+                    itemBuilder: (ctx, i) => _OrderCard(
+                      order: orderProv.orders[i],
+                      index: i + 1,
+                      formatPrice: _formatPrice,
+                      formatDate: _formatDate,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -121,135 +171,117 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   }
 }
 
-// ── Order Card ─────────────────────────────────────────────
+// ── Order Card ───────────────────────────────────────────────
 class _OrderCard extends StatelessWidget {
   final OrderModel order;
+  final int index;
   final String Function(double) formatPrice;
   final String Function(String) formatDate;
 
   const _OrderCard({
     required this.order,
+    required this.index,
     required this.formatPrice,
     required this.formatDate,
   });
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'processing':
-        return Colors.blue;
-      case 'shipped':
-        return Colors.purple;
-      case 'delivered':
-        return Colors.green;
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
   String _statusLabel(String status) {
     switch (status) {
       case 'pending':
-        return 'Menunggu Pembayaran';
+        return 'MENUNGGU PEMBAYARAN';
       case 'processing':
-        return 'Sedang Diproses';
+        return 'SEDANG DIPROSES';
       case 'shipped':
-        return 'Dikirim';
+        return 'DIKIRIM';
       case 'delivered':
-        return 'Diterima';
+        return 'DITERIMA';
       case 'cancelled':
-        return 'Dibatalkan';
+        return 'DIBATALKAN';
       default:
-        return status;
+        return status.toUpperCase();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final surface = Theme.of(context).colorScheme.surface;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final primary = Theme.of(context).colorScheme.primary;
-    final statusColor = _statusColor(order.status);
+    final muted = onSurface.withValues(alpha: 0.5);
 
     return Container(
       decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: onSurface, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: order id + status chip
+            // Header
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Order #${order.id}',
+                  index.toString().padLeft(2, '0'),
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: primary,
+                    fontFamily: 'Helvetica',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: muted,
                   ),
                 ),
+                const SizedBox(width: 8),
+                Container(width: 1, height: 12, color: muted),
+                const SizedBox(width: 8),
+                Text(
+                  'ORDER #${order.id}',
+                  style: TextStyle(
+                    fontFamily: 'Helvetica',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: onSurface, width: 1),
                   ),
                   child: Text(
                     _statusLabel(order.status),
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
+                      fontFamily: 'Helvetica',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            // Tanggal
+            const SizedBox(height: 8),
+            Container(width: 16, height: 1, color: muted),
+            const SizedBox(height: 12),
             Text(
               formatDate(order.createdAt),
-              style: TextStyle(
-                fontSize: 12,
-                color: onSurface.withValues(alpha: 0.5),
-              ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-            const Divider(height: 20),
-            // Jumlah item + total
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${order.items.length} item',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: onSurface.withValues(alpha: 0.7),
-                  ),
+                  '${order.items.length} ITEM',
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
                 Text(
                   formatPrice(order.totalAmount),
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: onSurface,
+                    fontFamily: 'Helvetica',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],

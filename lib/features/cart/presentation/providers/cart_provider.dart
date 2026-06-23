@@ -38,9 +38,13 @@ class CartProvider extends ChangeNotifier {
       _cart = await _repository.getCart();
       _status = CartStatus.loaded;
     } on DioException catch (e) {
-      _setError(
-        e.response?.data['message'] as String? ?? 'Gagal memuat keranjang',
-      );
+      if (e.response?.statusCode == 404) {
+        _cart = const CartModel(items: [], total: 0, itemCount: 0);
+        _status = CartStatus.loaded;
+        notifyListeners();
+      } else {
+        _setError(_readErrorMessage(e.response?.data) ?? 'Gagal memuat keranjang');
+      }
       return;
     } catch (e) {
       _setError('Terjadi kesalahan: $e');
@@ -59,7 +63,7 @@ class CartProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      _error = e.response?.data['message'] as String? ?? 'Gagal menambah ke keranjang';
+      _error = _readErrorMessage(e.response?.data) ?? 'Gagal menambah ke keranjang';
       _isAdding = false;
       notifyListeners();
       return false;
@@ -76,9 +80,7 @@ class CartProvider extends ChangeNotifier {
       await _repository.updateCartItem(cartItemId, quantity);
       await fetchCart();
     } on DioException catch (e) {
-      _setError(
-        e.response?.data['message'] as String? ?? 'Gagal memperbarui item',
-      );
+      _setError(_readErrorMessage(e.response?.data) ?? 'Gagal memperbarui item');
     } catch (e) {
       _setError('Terjadi kesalahan: $e');
     }
@@ -89,9 +91,7 @@ class CartProvider extends ChangeNotifier {
       await _repository.removeCartItem(cartItemId);
       await fetchCart();
     } on DioException catch (e) {
-      _setError(
-        e.response?.data['message'] as String? ?? 'Gagal menghapus item',
-      );
+      _setError(_readErrorMessage(e.response?.data) ?? 'Gagal menghapus item');
     } catch (e) {
       _setError('Terjadi kesalahan: $e');
     }
@@ -104,11 +104,14 @@ class CartProvider extends ChangeNotifier {
       _status = CartStatus.loaded;
       notifyListeners();
     } on DioException catch (e) {
-      _setError(
-        e.response?.data['message'] as String? ?? 'Gagal mengosongkan keranjang',
-      );
+      _setError(_readErrorMessage(e.response?.data) ?? 'Gagal mengosongkan keranjang');
     } catch (e) {
       _setError('Terjadi kesalahan: $e');
     }
+  }
+
+  String? _readErrorMessage(Object? data) {
+    if (data is Map<String, dynamic>) return data['message'] as String?;
+    return null;
   }
 }
