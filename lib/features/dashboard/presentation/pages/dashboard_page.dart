@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pasar_malam/core/providers/theme_provider.dart';
 import 'package:pasar_malam/core/routes/app_router.dart';
+import 'package:pasar_malam/core/widgets/swiss.dart';
 import 'package:pasar_malam/features/auth/presentation/providers/auth_provider.dart';
 import 'package:pasar_malam/features/cart/presentation/providers/cart_provider.dart';
 import 'package:pasar_malam/features/dashboard/data/models/product_model.dart';
@@ -20,7 +21,7 @@ class _DashboardPageState extends State<DashboardPage> {
   String _selectedCategory = 'All';
   final _searchCtrl = TextEditingController();
 
-  final List<_CategoryItem> _categories = const [
+  static const List<_CategoryItem> _categories = [
     _CategoryItem(label: 'All', icon: Icons.apps),
     _CategoryItem(label: 'Running', icon: Icons.directions_run),
     _CategoryItem(label: 'Lifestyle', icon: Icons.style),
@@ -73,63 +74,84 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final productProv = context.watch<ProductProvider>();
-
     // ignore: unused_local_variable
     final _ = context.watch<OrderProvider>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            // ── Body scroll ─────────────────────────────────
+            // ── Top bar ───────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SwissLabel('Pasar Malam · Etalase'),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 24,
+                          height: 1,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Halo,\n${auth.firebaseUser?.displayName ?? "Pembeli"}.',
+                          style:
+                              Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    height: 1.1,
+                                    letterSpacing: -0.3,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.receipt_long_outlined),
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      AppRouter.myOrders,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Search bar ────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _SearchBar(
+                controller: _searchCtrl,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+
+            // ── Body scroll ───────────────────────────────
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => productProv.fetchProducts(),
                 child: CustomScrollView(
                   slivers: [
-                    // ── Search Bar ─────────────────────────
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                        child: _SearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {})),
-                      ),
-                    ),
-
                     // ── Banner ─────────────────────────────
                     const SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                         child: _BannerCard(),
                       ),
                     ),
 
                     // ── Categories ─────────────────────────
                     SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Categories',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A1A2E),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'See All',
-                                style: TextStyle(
-                                  color: Color(0xFF1565C0),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
+                      child: SwissSection(
+                        label: 'Kategori · 01',
+                        trailing: TextButton(
+                          onPressed: () {},
+                          child: const Text('SEMUA'),
                         ),
                       ),
                     ),
@@ -138,16 +160,17 @@ class _DashboardPageState extends State<DashboardPage> {
                         height: 44,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                           itemCount: _categories.length,
-                          separatorBuilder: (ctx, idx) => const SizedBox(width: 10),
+                          separatorBuilder: (ctx, idx) => const SizedBox(width: 8),
                           itemBuilder: (_, i) {
                             final cat = _categories[i];
-                            final selected = _selectedCategory == cat.label;
-                            return _CategoryChip(
-                              item: cat,
-                              selected: selected,
-                              onTap: () => setState(() => _selectedCategory = cat.label),
+                            return SwissTag(
+                              label: cat.label,
+                              icon: cat.icon,
+                              selected: _selectedCategory == cat.label,
+                              onTap: () =>
+                                  setState(() => _selectedCategory = cat.label),
                             );
                           },
                         ),
@@ -155,17 +178,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
 
                     // ── For You label ─────────────────────
-                    const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
-                        child: Text(
-                          'For you',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A1A2E),
-                          ),
-                        ),
+                    SliverToBoxAdapter(
+                      child: SwissSection(
+                        label: 'Untuk Anda · 02',
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                       ),
                     ),
 
@@ -180,13 +196,17 @@ class _DashboardPageState extends State<DashboardPage> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 48,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
                                 const SizedBox(height: 12),
                                 Text(productProv.error ?? 'Terjadi kesalahan'),
                                 const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Coba Lagi'),
+                                SwissOutlineButton(
+                                  label: 'Coba Lagi',
+                                  icon: Icons.refresh,
                                   onPressed: () => productProv.fetchProducts(),
                                 ),
                               ],
@@ -203,7 +223,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             );
                           }
                           return SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                             sliver: SliverGrid(
                               delegate: SliverChildBuilderDelegate(
                                 (_, i) => _ProductCard(
@@ -212,9 +232,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                                 childCount: items.length,
                               ),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.62,
+                                childAspectRatio: 0.6,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
@@ -227,20 +248,18 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
 
-            // ── Bottom Navigation Bar ────────────────────
+            // ── Bottom Navigation ────────────────────────
             _BottomNav(
               selectedIndex: _selectedNav,
               onTap: (i) {
                 if (i == 1) {
-                  // Cart → navigate to CartPage
                   Navigator.pushNamed(context, AppRouter.cart).then((_) {
                     if (context.mounted) {
                       context.read<CartProvider>().fetchCart();
                     }
                   });
                 } else if (i == 3) {
-                  // Account → logout dialog
-                  _showLogoutDialog(context, auth);
+                  _showAccountSheet(context, auth);
                 } else {
                   setState(() => _selectedNav = i);
                 }
@@ -252,17 +271,17 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, AuthProvider auth) {
-    showDialog(
+  void _showAccountSheet(BuildContext context, AuthProvider auth) {
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) {
-        return _AccountDialog(auth: auth);
-      },
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      isScrollControlled: true,
+      builder: (_) => _AccountSheet(auth: auth),
     );
   }
 }
 
-// ── Search Bar Widget ──────────────────────────────────────
+// ── Search Bar ───────────────────────────────────────────────
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
@@ -271,134 +290,126 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = Theme.of(context).colorScheme.surface;
-    final hintColor = Theme.of(context).hintColor;
-
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          hintText: 'Puma, Running, Training...',
-          hintStyle: TextStyle(color: hintColor, fontSize: 14),
-          prefixIcon: Icon(Icons.search, color: hintColor, size: 22),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 13),
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      cursorColor: Theme.of(context).colorScheme.onSurface,
+      style: Theme.of(context).textTheme.bodyLarge,
+      decoration: InputDecoration(
+        hintText: 'Cari produk, kategori, atau merek',
+        prefixIcon: Icon(
+          Icons.search,
+          size: 18,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
+        suffixIcon: controller.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.close, size: 16),
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+              )
+            : null,
       ),
     );
   }
 }
 
-// ── Banner Card Widget ─────────────────────────────────────
+// ── Banner ───────────────────────────────────────────────────
 class _BannerCard extends StatelessWidget {
   const _BannerCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 160,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface,
+          width: 1,
         ),
       ),
       child: Stack(
         children: [
-          // Lingkaran dekorasi background
-          Positioned(
-            right: 130,
-            top: -20,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
+          // Pola garis Swiss samar di background
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _GridPainter(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.06),
               ),
             ),
           ),
-          // Teks dan tombol
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'New Collections!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Get Discount up to 50%\nfor the first transaction',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'SHOP NOW!',
+                Row(
+                  children: [
+                    SwissLabel('Promo · 01'),
+                    const SizedBox(width: 12),
+                    Container(width: 1, height: 12,
+                      color: Theme.of(context).colorScheme.onSurface),
+                    const SizedBox(width: 12),
+                    Text(
+                      '50% OFF',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                        fontFamily: 'Helvetica',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.0,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Koleksi\nBaru.',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        height: 0.95,
+                        letterSpacing: -1.0,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Diskon hingga 50%\nuntuk transaksi pertama.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
+                        height: 1.4,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text(
+                      'BELANJA SEKARANG',
+                      style: TextStyle(
+                        fontFamily: 'Helvetica',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.0,
+                        decoration: TextDecoration.underline,
+                        decorationThickness: 1,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ),
-          // Gambar sepatu placeholder
-          Positioned(
-            right: 0,
-            bottom: 0,
-            top: 0,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-              child: Container(
-                width: 160,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.directions_run,
-                  size: 80,
-                  color: Colors.white24,
-                ),
-              ),
             ),
           ),
         ],
@@ -407,67 +418,26 @@ class _BannerCard extends StatelessWidget {
   }
 }
 
-// ── Category Chip Widget ───────────────────────────────────
-class _CategoryChip extends StatelessWidget {
-  final _CategoryItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _CategoryChip({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
+class _GridPainter extends CustomPainter {
+  final Color color;
+  _GridPainter({required this.color});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFF1565C0)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              item.icon,
-              size: 16,
-              color: selected
-                  ? Colors.white
-                  : Theme.of(context).colorScheme.onSurface,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: selected
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+    const step = 16.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ── Product Card Widget ────────────────────────────────────
+// ── Product Card ─────────────────────────────────────────────
 class _ProductCard extends StatefulWidget {
   final ProductModel product;
   final String Function(double) formatPrice;
@@ -485,9 +455,7 @@ class _ProductCardState extends State<_ProductCard> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       builder: (_) => _ProductDetailSheet(
         product: widget.product,
         formatPrice: widget.formatPrice,
@@ -498,67 +466,77 @@ class _ProductCardState extends State<_ProductCard> {
   @override
   Widget build(BuildContext context) {
     final p = widget.product;
-    final surface = Theme.of(context).colorScheme.surface;
     final onSurface = Theme.of(context).colorScheme.onSurface;
+    final muted = onSurface.withValues(alpha: 0.5);
 
     return GestureDetector(
       onTap: () => _showProductDetail(context),
       child: Container(
         decoration: BoxDecoration(
-          color: surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: onSurface, width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Gambar produk ───────────────────────────
+            // ── Gambar ────────────────────────────────
             Expanded(
               flex: 5,
               child: Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
+                  Positioned.fill(
                     child: p.imageUrl.isNotEmpty
                         ? Image.network(
                             p.imageUrl,
-                            width: double.infinity,
-                            height: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => _imagePlaceholder(),
+                            errorBuilder: (ctx, err, stack) =>
+                                _imagePlaceholder(context),
                           )
-                        : _imagePlaceholder(),
+                        : _imagePlaceholder(context),
+                  ),
+                  // Nomor indeks Swiss
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        border: Border.all(color: onSurface, width: 1),
+                      ),
+                      child: Text(
+                        '01',
+                        style: TextStyle(
+                          fontFamily: 'Helvetica',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: onSurface,
+                        ),
+                      ),
+                    ),
                   ),
                   // Heart button
                   Positioned(
                     top: 8,
                     right: 8,
                     child: GestureDetector(
-                      onTap: () => setState(() => _isFavorite = !_isFavorite),
+                      onTap: () =>
+                          setState(() => _isFavorite = !_isFavorite),
                       child: Container(
-                        padding: const EdgeInsets.all(6),
+                        width: 28,
+                        height: 28,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 4,
-                            ),
-                          ],
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          border: Border.all(color: onSurface, width: 1),
                         ),
                         child: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          size: 16,
-                          color: _isFavorite ? Colors.red : Colors.grey,
+                          _isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 14,
+                          color: _isFavorite ? onSurface : muted,
                         ),
                       ),
                     ),
@@ -567,7 +545,7 @@ class _ProductCardState extends State<_ProductCard> {
               ),
             ),
 
-            // ── Info produk ────────────────────────────
+            // ── Info ───────────────────────────────────
             Expanded(
               flex: 4,
               child: Padding(
@@ -575,56 +553,66 @@ class _ProductCardState extends State<_ProductCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Kategori
                     Text(
-                      p.category,
+                      p.category.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 11,
-                        color: onSurface.withValues(alpha: 0.5),
+                        fontFamily: 'Helvetica',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.0,
+                        color: muted,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    // Nama produk
+                    const SizedBox(height: 4),
                     Text(
                       p.name,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: onSurface,
-                        height: 1.3,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            height: 1.2,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
-                    // Rating
                     Row(
                       children: [
-                        ...List.generate(
-                          5,
-                          (i) => Icon(
-                            i < 4 ? Icons.star : Icons.star_half,
-                            size: 12,
-                            color: const Color(0xFFFFC107),
+                        Container(
+                          width: 1,
+                          height: 10,
+                          color: onSurface,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '4.6',
+                          style: TextStyle(
+                            fontFamily: 'Helvetica',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: onSurface,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Text(
-                          '4.6',
-                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                        Text(
+                          '/ 5.0',
+                          style: TextStyle(
+                            fontFamily: 'Helvetica',
+                            fontSize: 11,
+                            color: muted,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    // Harga
                     Text(
                       widget.formatPrice(p.price),
-                      style: const TextStyle(
+                      style: TextStyle(
+                        fontFamily: 'Helvetica',
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1565C0),
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: onSurface,
                       ),
                     ),
                   ],
@@ -637,21 +625,19 @@ class _ProductCardState extends State<_ProductCard> {
     );
   }
 
-  Widget _imagePlaceholder() => Builder(
-        builder: (context) => Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Icon(
-            Icons.image_outlined,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-            size: 40,
-          ),
-        ),
-      );
+  Widget _imagePlaceholder(BuildContext context) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Icon(
+        Icons.image_outlined,
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+        size: 40,
+      ),
+    );
+  }
 }
 
-// ── Product Detail Bottom Sheet ────────────────────────────
+// ── Product Detail Bottom Sheet ──────────────────────────────
 class _ProductDetailSheet extends StatefulWidget {
   final ProductModel product;
   final String Function(double) formatPrice;
@@ -671,210 +657,171 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
   @override
   Widget build(BuildContext context) {
     final p = widget.product;
-    final primary = Theme.of(context).colorScheme.primary;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final surface = Theme.of(context).colorScheme.surface;
     final cartProv = context.watch<CartProvider>();
 
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: 0.75,
+      initialChildSize: 0.85,
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (_, scrollCtrl) => Container(
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           children: [
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: onSurface.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
             Expanded(
               child: ListView(
                 controller: scrollCtrl,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                 children: [
-                  // Gambar produk
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: p.imageUrl.isNotEmpty
-                        ? Image.network(
-                            p.imageUrl,
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => Container(
-                              height: 200,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                              child: Icon(
-                                Icons.image_outlined,
-                                color: onSurface.withValues(alpha: 0.2),
-                                size: 48,
+                  // Image
+                  AspectRatio(
+                    aspectRatio: 1.2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: onSurface, width: 1),
+                      ),
+                      child: p.imageUrl.isNotEmpty
+                          ? Image.network(
+                              p.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (ctx, error, stack) => _placeholderBox(
+                                context,
+                                icon: Icons.image_outlined,
                               ),
-                            ),
-                          )
-                        : Container(
-                            height: 200,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
-                            child: Icon(
-                              Icons.image_outlined,
-                              color: onSurface.withValues(alpha: 0.2),
-                              size: 48,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Kategori
-                  Text(
-                    p.category,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Nama
-                  Text(
-                    p.name,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Harga
-                  Text(
-                    widget.formatPrice(p.price),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: primary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Deskripsi
-                  Text(
-                    p.description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: onSurface.withValues(alpha: 0.7),
-                      height: 1.5,
+                            )
+                          : _placeholderBox(context, icon: Icons.image_outlined),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Quantity stepper
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          if (_qty > 1) setState(() => _qty--);
-                        },
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.remove, size: 18, color: primary),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SwissLabel(p.category),
+                            const SizedBox(height: 6),
+                            Container(
+                              width: 24,
+                              height: 1,
+                              color: onSurface,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              p.name,
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                          ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: onSurface, width: 1),
+                        ),
                         child: Text(
-                          '$_qty',
+                          '#${p.id}',
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Helvetica',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
                             color: onSurface,
                           ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => setState(() => _qty++),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.add, size: 18, color: primary),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.formatPrice(p.price),
+                    style: TextStyle(
+                      fontFamily: 'Helvetica',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const SwissHairline(),
+                  const SizedBox(height: 16),
+                  SwissLabel('Deskripsi'),
+                  const SizedBox(height: 8),
+                  Text(
+                    p.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          height: 1.5,
+                          color: onSurface.withValues(alpha: 0.8),
                         ),
+                  ),
+                  const SizedBox(height: 24),
+                  SwissLabel('Jumlah'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _QtyStep(
+                        icon: Icons.remove,
+                        onTap: _qty > 1 ? () => setState(() => _qty--) : null,
+                      ),
+                      Container(
+                        width: 56,
+                        height: 40,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: onSurface, width: 1),
+                            bottom: BorderSide(color: onSurface, width: 1),
+                          ),
+                        ),
+                        child: Text(
+                          '$_qty',
+                          style: TextStyle(
+                            fontFamily: 'Helvetica',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: onSurface,
+                          ),
+                        ),
+                      ),
+                      _QtyStep(
+                        icon: Icons.add,
+                        onTap: () => setState(() => _qty++),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
                 ],
               ),
             ),
-            // Tombol Tambah ke Keranjang
+            const SwissHairline(),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: cartProv.isAdding
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.shopping_cart_outlined),
-                  label: Text(
-                    cartProv.isAdding ? 'Menambahkan...' : 'Tambah ke Keranjang',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  onPressed: cartProv.isAdding
-                      ? null
-                      : () async {
-                          final success = await context
-                              .read<CartProvider>()
-                              .addToCart(p.id, _qty);
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                success
-                                    ? '${p.name} ditambahkan ke keranjang'
-                                    : 'Gagal menambahkan ke keranjang',
-                              ),
-                              backgroundColor: success ? Colors.green : Colors.red,
-                              duration: const Duration(seconds: 2),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: SwissPrimaryButton(
+                label: 'Tambah ke Keranjang',
+                icon: Icons.add_shopping_cart,
+                loading: cartProv.isAdding,
+                onPressed: cartProv.isAdding
+                    ? null
+                    : () async {
+                        final success = await context
+                            .read<CartProvider>()
+                            .addToCart(p.id, _qty);
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? '${p.name} ditambahkan'
+                                  : 'Gagal menambahkan',
                             ),
-                          );
-                        },
-                ),
+                          ),
+                        );
+                      },
               ),
             ),
           ],
@@ -882,9 +829,58 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
       ),
     );
   }
+
+  Widget _placeholderBox(BuildContext context, {required IconData icon}) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Icon(
+        icon,
+        size: 48,
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+      ),
+    );
+  }
 }
 
-// ── Bottom Navigation Bar ──────────────────────────────────
+class _QtyStep extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _QtyStep({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final disabled = onTap == null;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          border: Border.all(
+            color: disabled
+                ? onSurface.withValues(alpha: 0.3)
+                : onSurface,
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: disabled
+              ? onSurface.withValues(alpha: 0.3)
+              : onSurface,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Bottom Navigation ────────────────────────────────────────
 class _BottomNav extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
@@ -894,101 +890,112 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      _NavItem(icon: Icons.home_rounded, label: 'Home'),
-      _NavItem(icon: Icons.shopping_bag_outlined, label: 'Cart'),
-      _NavItem(icon: Icons.favorite_border, label: 'Favorite'),
-      _NavItem(icon: Icons.person_outline, label: 'Account'),
+      _NavItem(icon: Icons.home_outlined, label: 'Beranda'),
+      _NavItem(icon: Icons.shopping_bag_outlined, label: 'Keranjang'),
+      _NavItem(icon: Icons.favorite_border, label: 'Favorit'),
+      _NavItem(icon: Icons.person_outline, label: 'Akun'),
     ];
 
-    final surface = Theme.of(context).colorScheme.surface;
-    final primary = Theme.of(context).colorScheme.primary;
-    final unselectedColor = Theme.of(context).unselectedWidgetColor;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final muted = onSurface.withValues(alpha: 0.5);
     final cartItemCount = context.watch<CartProvider>().itemCount;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (i) {
-              final selected = selectedIndex == i;
-              final isCart = i == 1;
-              return GestureDetector(
-                onTap: () => onTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SwissHairline(),
+        SafeArea(
+          top: false,
+          child: Container(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: List.generate(items.length, (i) {
+                  final selected = selectedIndex == i;
+                  final isCart = i == 1;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => onTap(i),
+                      behavior: HitTestBehavior.opaque,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            items[i].icon,
-                            size: 24,
-                            color: selected ? primary : unselectedColor,
-                          ),
-                          if (isCart && cartItemCount > 0)
-                            Positioned(
-                              right: -6,
-                              top: -6,
-                              child: Container(
-                                width: 16,
-                                height: 16,
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  cartItemCount > 99
-                                      ? '99+'
-                                      : '$cartItemCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(
+                                items[i].icon,
+                                size: 22,
+                                color: selected ? onSurface : muted,
+                              ),
+                              if (isCart && cartItemCount > 0)
+                                Positioned(
+                                  right: -8,
+                                  top: -6,
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: onSurface,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      cartItemCount > 99
+                                          ? '99+'
+                                          : '$cartItemCount',
+                                      style: TextStyle(
+                                        fontFamily: 'Helvetica',
+                                        color: Theme.of(context)
+                                            .scaffoldBackgroundColor,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            items[i].label.toUpperCase(),
+                            style: TextStyle(
+                              fontFamily: 'Helvetica',
+                              fontSize: 9,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                              letterSpacing: 1.5,
+                              color: selected ? onSurface : muted,
                             ),
+                          ),
+                          if (selected) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              width: 16,
+                              height: 1,
+                              color: onSurface,
+                            ),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        items[i].label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                          color: selected ? primary : unselectedColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+                    ),
+                  );
+                }),
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
-// ── Data classes ───────────────────────────────────────────
+// ── Data classes ─────────────────────────────────────────────
 class _CategoryItem {
   final String label;
   final IconData icon;
@@ -1001,88 +1008,198 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-// ── Account Dialog (dengan Dark Mode Switch) ──────────────
-class _AccountDialog extends StatelessWidget {
+// ── Account Sheet ────────────────────────────────────────────
+class _AccountSheet extends StatelessWidget {
   final AuthProvider auth;
 
-  const _AccountDialog({required this.auth});
+  const _AccountSheet({required this.auth});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = themeProvider.isDark;
+    final name = auth.firebaseUser?.displayName ?? 'User';
+    final email = auth.firebaseUser?.email ?? '';
 
-    return AlertDialog(
-      title: const Text('Akun'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: const Color(0xFF1565C0),
-            child: Text(
-              (auth.firebaseUser?.displayName ?? 'U')[0].toUpperCase(),
-              style: const TextStyle(fontSize: 24, color: Colors.white),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                SwissLabel('Akun · 04'),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            auth.firebaseUser?.displayName ?? 'User',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          Text(
-            auth.firebaseUser?.email ?? '',
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          const Divider(),
-          const SizedBox(height: 4),
-
-          // Dark mode toggle row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    isDark ? Icons.dark_mode : Icons.light_mode,
-                    size: 20,
-                    color: isDark ? Colors.amber : Colors.grey.shade600,
+            Container(
+              width: 24,
+              height: 1,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 1,
+                    ),
                   ),
-                  const SizedBox(width: 10),
+                  child: Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                    style: TextStyle(
+                      fontFamily: 'Helvetica',
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      isDark ? 'MODE GELAP' : 'MODE TERANG',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ],
+                ),
+                Switch(
+                  value: isDark,
+                  onChanged: (_) => context.read<ThemeProvider>().toggle(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const SwissHairline(),
+            const SizedBox(height: 16),
+            _SheetLink(
+              icon: Icons.receipt_long_outlined,
+              label: 'Pesanan Saya',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppRouter.myOrders);
+              },
+            ),
+            const SizedBox(height: 12),
+            _SheetLink(
+              icon: Icons.shopping_bag_outlined,
+              label: 'Keranjang',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppRouter.cart);
+              },
+            ),
+            const SizedBox(height: 24),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await auth.logout();
+                if (!context.mounted) return;
+                // ignore: use_build_context_synchronously
+                Navigator.pushReplacementNamed(context, AppRouter.login);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.logout, size: 16),
+                  const SizedBox(width: 8),
                   Text(
-                    isDark ? 'Mode Gelap' : 'Mode Terang',
-                    style: const TextStyle(fontSize: 14),
+                    'KELUAR',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2.0,
+                    ),
                   ),
                 ],
               ),
-              Switch(
-                value: isDark,
-                onChanged: (_) => context.read<ThemeProvider>().toggle(),
-              ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Tutup'),
+    );
+  }
+}
+
+class _SheetLink extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _SheetLink({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onSurface,
+            width: 1,
+          ),
         ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.logout, size: 18),
-          label: const Text('Logout'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          onPressed: () async {
-            Navigator.pop(context);
-            await auth.logout();
-            if (!context.mounted) return;
-            // ignore: use_build_context_synchronously
-            Navigator.pushReplacementNamed(context, AppRouter.login);
-          },
+        child: Row(
+          children: [
+            Icon(icon, size: 18),
+            const SizedBox(width: 12),
+            Text(
+              label.toUpperCase(),
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const Spacer(),
+            const Icon(Icons.arrow_forward, size: 16),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
