@@ -2,9 +2,7 @@ import 'package:flutter/foundation.dart';
 
 class ApiConstants {
   // Override saat run:
-  // flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8085/v1
-  // iOS simulator:
-  // flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8085/v1
+  // flutter run --dart-define=API_BASE_URL=http://192.168.1.11:8082/v1
   static const String _configuredBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
   );
@@ -12,12 +10,12 @@ class ApiConstants {
   static String get baseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
 
-    if (kIsWeb) return 'http://localhost:8080/v1';
+    if (kIsWeb) return 'http://localhost:8082/v1';
 
     return switch (defaultTargetPlatform) {
-      TargetPlatform.android => 'http://10.0.2.2:8085/v1',
-      TargetPlatform.iOS => 'http://127.0.0.1:8085/v1',
-      _ => 'http://127.0.0.1:8085/v1',
+      TargetPlatform.android => 'http://192.168.131.185:8082/v1',
+      TargetPlatform.iOS => 'http://127.0.0.1:8082/v1',
+      _ => 'http://127.0.0.1:8082/v1',
     };
   }
 
