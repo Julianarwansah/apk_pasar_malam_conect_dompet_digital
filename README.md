@@ -199,11 +199,12 @@ Project ini punya satu package lokal di `packages/flutter_biometric_kit/` — li
 
 ## Proyek Terkait
 
-| Folder | Hubungan |
-|--------|----------|
-| [📂 `be_pasar_malam`](../be_pasar_malam) | Backend API yang menyediakan data produk, keranjang, & pesanan |
-| [📂 `dompet_digital`](../dompet_digital) | Flutter app e-money — user bisa bayar pakai saldo dompet |
-| [📂 `be_dompet_digital`](../be_dompet_digital) | Backend dompet — share Firebase Auth dengan backend ini |
+| Proyek | Link | Hubungan |
+|--------|------|----------|
+| `apk_pasar_malam_conect_dompet_digital` | [GitHub](https://github.com/Julianarwansah/apk_pasar_malam_conect_dompet_digital.git) | Pasar malam yang terkoneksi dengan dompet digital |
+| `be_pasar_malam` | [GitHub](https://github.com/Julianarwansah/be_pasar_malam.git) | Backend API yang menyediakan data produk, keranjang, & pesanan |
+| `Dompet_digital` | [GitHub](https://github.com/Julianarwansah/Dompet_digital.git) | Flutter app e-money — user bisa bayar pakai saldo dompet |
+| `BE_Dompet_digital` | [GitHub](https://github.com/Julianarwansah/BE_Dompet_digital.git) | Backend dompet — share Firebase Auth dengan backend ini |
 
 ## Catatan
 
