@@ -193,6 +193,10 @@ flutter analyze
 flutter test
 ```
 
+## Demo Video
+
+📺 [YouTube — APP Dompet Digital & APP Pasar Malam](https://youtu.be/FbgJiSlCbQc?si=o25bBbH71duQvz4X)
+
 ## Packages Lokal
 
 Project ini punya satu package lokal di `packages/flutter_biometric_kit/` — library buat handle biometric authentication (fingerprint / face ID). Dipake buat mengunci aplikasi saat user pindah ke app lain, lalu butuh verifikasi biometric saat balik.
