@@ -2,6 +2,18 @@
 
 Aplikasi mobile marketplace jajanan pasar malam. User bisa browsing produk makanan & minuman, masukin ke keranjang, checkout, dan lihat status pesanan. Dibangun pakai Flutter dengan state management Provider.
 
+## Screenshots
+
+| Light Mode | Dark Mode |
+|------------|-----------|
+| ![Login](assets/images/1.login.png) | ![Home Dark](assets/images/8.homeschreendark.png) |
+| ![Register](assets/images/2.registrasi.png) | ![Home Dark 2](assets/images/9.homeschreendark.png) |
+| ![Home Night](assets/images/3.homeschrenight.png) | ![Cart Dark](assets/images/10cartdark.png) |
+| ![Home Light](assets/images/4.homescheenlight.png) | ![Profile Dark](assets/images/11profiledark.png) |
+| ![Cart Light](assets/images/5.cartlightschreen.png) | |
+| ![Profile Light](assets/images/6.profilelightschreen.png) | |
+| ![Pesanan Saya](assets/images/7.pesanansayalightschreen.png) | |
+
 ## Fitur
 
 ### Autentikasi
